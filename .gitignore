@@ -1,0 +1,30 @@
+# Virtual environment
+.direnv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+
+# Project data (large/generated files)
+data/output/
+*.pdf
+temp_page_*.pdf
+
+# Environment secrets
+.env
+!.envrc
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
