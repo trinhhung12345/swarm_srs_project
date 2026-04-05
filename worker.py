@@ -7,6 +7,9 @@ USER = os.getenv("RABBITMQ_USER")
 PASS = os.getenv("RABBITMQ_PASS")
 OUTPUT_DIR = "data/output"
 
+# Đảm bảo thư mục output tồn tại
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
 def process_complex_pdf_page(page_num, pdf_bytes):
     # Lưu file tạm để các thư viện đọc
     temp_pdf = f"temp_page_{page_num}.pdf"
