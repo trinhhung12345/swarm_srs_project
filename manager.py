@@ -1,36 +1,28 @@
-import pika, json, base64, os
-import fitz  # PyMuPDF
+import pika, json, os
 
-HOST = os.getenv("RABBITMQ_HOST")
-USER = os.getenv("RABBITMQ_USER")
-PASS = os.getenv("RABBITMQ_PASS")
+HOST = os.getenv("RABBITMQ_HOST", "127.0.0.1")
+USER = os.getenv("RABBITMQ_USER", "admin")
+PASS = os.getenv("RABBITMQ_PASS", "admin123")
 
 def main():
     creds = pika.PlainCredentials(USER, PASS)
     connection = pika.BlockingConnection(pika.ConnectionParameters(host=HOST, credentials=creds))
     channel = connection.channel()
-    channel.queue_declare(queue='pdf_complex_tasks')
+    channel.queue_declare(queue='ai_tasks')
 
-    pdf_path = 'data/input/srs_document.pdf' # Bạn copy file PDF vào đây
-    doc = fitz.open(pdf_path)
-    
-    print(f"[*] Đang xử lý tài liệu {len(doc)} trang...")
+    # Giả lập 4 đoạn text trích xuất từ file SRS
+    tasks =[
+        "Use case 1: Người dùng đăng nhập bằng Email và Password. Nếu sai 3 lần sẽ bị khóa tài khoản.",
+        "Use case 2: Giảng viên có thể thêm, sửa, xóa khóa học. Khóa học phải có tên và mô tả.",
+        "Use case 3: Học viên xem danh sách khóa học và có thể thanh toán qua VNPay.",
+        "Use case 4: Quản trị viên xem báo cáo doanh thu hàng tháng và xuất file Excel."
+    ]
 
-    for page_num in range(len(doc)):
-        # Tạo một file PDF mới chỉ chứa 1 trang này trong RAM
-        single_page_doc = fitz.open()
-        single_page_doc.insert_pdf(doc, from_page=page_num, to_page=page_num)
-        pdf_bytes = single_page_doc.write()
-        
-        # Mã hóa gửi đi
-        task = {
-            "page_number": page_num + 1,
-            "pdf_base64": base64.b64encode(pdf_bytes).decode('utf-8')
-        }
-        
-        channel.basic_publish(exchange='', routing_key='pdf_complex_tasks', body=json.dumps(task))
-        print(f"[x] Đã gửi Trang {page_num + 1} cho Worker.")
-        
+    for i, text in enumerate(tasks):
+        task_data = {"task_id": i + 1, "content": text}
+        channel.basic_publish(exchange='', routing_key='ai_tasks', body=json.dumps(task_data))
+        print(f"[x] Đã gửi Task {i + 1} lên hàng đợi cho AI.")
+
     connection.close()
 
 if __name__ == '__main__':
